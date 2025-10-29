@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oclab"
+version = "0.1.0"
+description = "OC lab: geometry→couplings, RG, and FRG mass-gap"
+authors = [{name="Your Name"}]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "matplotlib>=3.7",
+  "pydantic>=2.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+oclab = ["py.typed"]

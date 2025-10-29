@@ -1,0 +1,53 @@
+geometry:
+  centers:
+    - [-0.9, -0.2,  0.1, 0.95, 0.30]
+    - [ 0.8,  0.3, -0.1, 1.05, 0.30]
+    - [ 0.2, -0.8,  0.4, 0.92, 0.35]
+    - [-0.1,  0.9, -0.3, 0.98, 0.35]
+  alpha_metric: 0.58
+  beta_floor: 0.68
+  lambda_su2: 0.190
+  nu_su3: 0.445
+  domain: [[-2.5, 2.5], [-2.5, 2.5], [-2.5, 2.5]]
+  n_samples: 160000
+  rng_seed: 7777
+  metric_model: hessian_logV   # or: grad_outer
+  weight_form: sqrt_detG
+  jitter: 1.0e-9
+
+ew_anchor:
+  mu0: 150.0
+  alpha_em_mu0: 0.007820   # 1/127.955
+  sin2_thetaW_mu0: 0.2312
+  scheme: Q3  #Q0 or Q3
+
+oc_params:
+  kappa: {"U1": 2, "SU2": 1, "SU3": 1}
+  weights: {"U1": 0.6, "SU2": 1.0, "SU3": 1.0}
+  n_color_discrete: 2
+  lock_modes: EW
+  Ka_prefactor: 1.0
+  Ka_power_kappa: 2.0
+  Ka_divide_by_n: true
+  Ka_group_scale: {"U1": 1.0, "SU2": 1.0, "SU3": 0.242284388589654}
+  m_tau_prefactor: 1.0
+  m_tau_kappa_agg: sum    # sum |kappa_a|
+  m_tau_kappa_power: 0.5  # √(…)
+  m_tau_x_exponent: 0.5   # √x
+
+
+rg:
+  mu_target: 91.1876
+  loop_order: 2
+  n_steps: 4000
+
+frg_scan:
+  kmin: 0.03
+  kmax: 150.0
+  n_k: 2200
+  alpha_target: 3
+  model: projected
+  growth_c: 1.65
+  eta_freeze: 0.99
+  alpha_cap: 5.0
+
