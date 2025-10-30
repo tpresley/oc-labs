@@ -1,11 +1,10 @@
 geometry:
-  ## Uncomment to generate centers from geometry (not free parameters)
   generator:
     type: icosa        # one of: icosa | dodeca | octa | tetra | random
-    N: 12              # only for random
-    seed: 777          # only for random
+    # N: 12              # only for random
+    # seed: 777          # only for random
   centers:             # ignored if generator is defined above
-    ## generated from icosohedron symmetry
+    ## calculated centers can be listed here to avoid recalculation on each run
     # - [0.0, 0.5020732120737726, 0.8123715219761982, 1.0, 0.6]
     # - [0.0, -0.5020732120737726, 0.8123715219761982, 1.0, 0.6]
     # - [0.0, 0.5020732120737726, -0.8123715219761982, 1.0, 0.6]
@@ -18,11 +17,6 @@ geometry:
     # - [0.8123715219761982, 0.0, -0.5020732120737726, 1.0, 0.6]
     # - [-0.8123715219761982, 0.0, 0.5020732120737726, 1.0, 0.6]
     # - [-0.8123715219761982, 0.0, -0.5020732120737726, 1.0, 0.6]
-    # Hand picked
-    # - [-0.9, -0.2,  0.1, 0.95, 0.30]
-    # - [ 0.8,  0.3, -0.1, 1.05, 0.30]
-    # - [ 0.2, -0.8,  0.4, 0.92, 0.35]
-    # - [-0.1,  0.9, -0.3, 0.98, 0.35]
   alpha_metric: 0.58
   beta_floor: 0.68
   lambda_su2: 0.190
@@ -46,7 +40,7 @@ oc_params:
   n_color_discrete: 2
   lock_modes: EW
   Ka_mode: slope
-  Ka_slope_K0: 0.475  #0.456467 #0.455326
+  Ka_slope_K0: 0.475  #calculated once as universal value
   Ka_prefactor: 1.0
   Ka_power_kappa: 2.0
   Ka_divide_by_n: true
@@ -63,13 +57,17 @@ rg:
   n_steps: 4000
 
 frg_scan:
+  flow: projector_bf  # projector_bf | toy (keep 'toy' to use the old ODE)
   kmin: 0.03
   kmax: 150.0
   n_k: 2200
-  alpha_target: 6000
-  model: projected
-  growth_c: 1.6
-  eta_freeze: 0.99
+  #####
+  # - Only used when flow is 'toy'
+  # alpha_target: 5
+  # model: projected
+  # growth_c: 1.6
+  #####
+  eta_freeze: 0.25
   alpha_cap: 5.0
 
 compute:

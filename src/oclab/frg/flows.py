@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 from typing import Callable
 from .bf_models import eta_minimal, eta_projected
+from .projectors import eta_A_projector, YMProjParams
 from dataclasses import replace
 
 def solve_growth_c_for_kstar(alpha0: float, alpha_target: float, kmax: float, k_star_desired: float) -> float:
@@ -44,7 +45,10 @@ def tune_growth_for_C(alpha0, mu0, scan, ocp, x, target_C, tol=0.05, max_iter=20
     lo, hi = 1.0, 12.0
     def run(g):
         s = replace(scan, growth_c=float(g))
+        
         res = scan_freeze(alpha0, mu0, s, model=s.model)
+        # res = scan_bf_projector(alpha0, mu0, s, model=s.model)
+        
         C = float("nan") if not res.k_star else (res.k_star / mτ)
         return res, C
 
@@ -172,3 +176,50 @@ def scan_freeze(alpha0: float, mu0: float, scan, model: str="projected") -> FRGR
                      reached_alpha=float(alpha[-1]),
                      reached_eta=float(abs(etaA[-1])),
                      analytic_note=analytic_note)
+
+
+from oclab.sm.thresholds import nf_piecewise
+def nf_of_k(k: float, scheme: str = "Q3") -> int:
+    # k is a scale like μ; reuse the EW/SM scheme (Q0/Q3) the user selected
+    return int(nf_piecewise(float(k), scheme))
+
+from .projectors import eta_A_projector, YMProjParams
+
+def scan_bf_projector(alpha0: float, mu0: float, scan, model_params: YMProjParams, nf_func) -> FRGResult:
+    k = np.geomspace(scan.kmax, scan.kmin, scan.n_k)
+    alpha = np.empty_like(k)
+    etaA  = np.empty_like(k)
+
+    alpha[0] = float(alpha0)
+    etaA[0]  = float(eta_A_projector(alpha[0], nf_func(k[0]), 0.0, 0.0, model_params))
+
+    k_star = None
+    reason = None
+    reached_alpha = float(alpha[0])
+    reached_eta   = float(abs(etaA[0]))
+
+    for i in range(1, len(k)):
+        dln = float(np.log(k[i-1] / k[i]))  # > 0
+        Nf  = int(nf_func(k[i-1]))
+        # implicit projector solve (warm-start with prev etaA)
+        eta = float(eta_A_projector(alpha[i-1], Nf, etaA[i-1], 0.0, model_params))
+        etaA[i] = eta
+        # BWI update
+        inv_alpha = 1.0/alpha[i-1] + (eta/(2.0*np.pi)) * dln
+        alpha[i]  = max(1e-12, 1.0/inv_alpha)
+
+        reached_alpha = float(alpha[i])
+        reached_eta   = float(abs(etaA[i]))
+
+        if reached_eta >= float(scan.eta_freeze) or alpha[i] >= float(scan.alpha_cap):
+            k_star = float(k[i])
+            reason = "eta_freeze" if reached_eta >= float(scan.eta_freeze) else "alpha_cap"
+            # truncate histories to the freeze point
+            alpha = alpha[:i+1]; etaA = etaA[:i+1]; k = k[:i+1]
+            break
+
+    if k_star is None:
+        reason = "range_exhausted"
+
+    return FRGResult(k=k, alpha=alpha, etaA=etaA, k_star=k_star,
+                     reason=reason, reached_alpha=reached_alpha, reached_eta=reached_eta)

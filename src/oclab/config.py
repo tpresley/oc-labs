@@ -88,6 +88,7 @@ class RGRun:
 
 @dataclass
 class FRGScan:
+    flow: Literal["toy","projector_bf"]
     kmin: float
     kmax: float
     n_k: int
@@ -95,7 +96,8 @@ class FRGScan:
     model: Literal["minimal","projected"] = "projected"
     growth_c: float = 5.0
     eta_freeze: float = 0.99
-    alpha_cap: float = 5.0   # NEW
+    alpha_cap: float = 5.0
+    projector: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         self.kmin         = _to_float(self.kmin)

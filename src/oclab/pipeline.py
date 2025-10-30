@@ -2,10 +2,11 @@ from __future__ import annotations
 from typing import Tuple
 import numpy as np
 from .config import GeometryConfig, EWAnchor, OCParams, RGRun, FRGScan
+from .frg.projectors import YMProjParams
 from .oc.calibration import calibrate_x_and_couplings
 from .sm.rgrun import run_couplings, RGHistory
 from .oc.units import m_tau
-from .frg.flows import scan_freeze, FRGResult
+from .frg.flows import scan_freeze, scan_bf_projector, FRGResult
 
 def geometry_to_couplings(
     gcfg: GeometryConfig, ew: EWAnchor, ocp: OCParams, rg: RGRun
@@ -18,6 +19,7 @@ def oc_gap_from_frg(
     frg: FRGScan, alpha0: float, mu0: float, ocp: OCParams, x: float
 ) -> tuple:
     frg_res = scan_freeze(alpha0, mu0, frg)
+    # frg_res = scan_bf_projector(alpha0, mu0, frg, YMProjParams())
     m_tau_val = m_tau(
         ocp.kappa, x,
         prefactor=ocp.m_tau_prefactor,
