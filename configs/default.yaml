@@ -71,3 +71,7 @@ frg_scan:
   eta_freeze: 0.99
   alpha_cap: 5.0
 
+compute:
+  backend: numpy     # options: torch_mps | torch_cpu | numpy
+  batch_size: 128000      # tune per GPU memory; 32k–128k are good starting points
+  dtype: float32         # MPS prefers float32; keep metrics stable with jitter

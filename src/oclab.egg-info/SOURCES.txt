@@ -10,6 +10,8 @@ src/oclab.egg-info/SOURCES.txt
 src/oclab.egg-info/dependency_links.txt
 src/oclab.egg-info/requires.txt
 src/oclab.egg-info/top_level.txt
+src/oclab/compute/__init__.py
+src/oclab/compute/backend.py
 src/oclab/frg/__init__.py
 src/oclab/frg/bf_models.py
 src/oclab/frg/flows.py

@@ -26,6 +26,7 @@ class GeometryConfig:
     weight_form: Literal["sqrt_detG"] = "sqrt_detG"
     jitter: float = 1e-9
     generator: Optional[Dict[str, Any]] = None
+    compute: Optional[Dict[str, Any]] = None
     def __post_init__(self):
         self.alpha_metric = _to_float(self.alpha_metric)
         self.beta_floor   = _to_float(self.beta_floor)

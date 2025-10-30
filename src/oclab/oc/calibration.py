@@ -15,7 +15,6 @@ class CalibrationResult:
 def calibrate_x_and_couplings(gcfg, ew, ocp) -> CalibrationResult:
     # Lazily import to avoid circulars
     from .stiffness import estimate_stiffness
-    from .stiffness import scaling_exponent_I3
     stiff = estimate_stiffness(gcfg)
 
     # GUT-normalized α1 from α_em, θ_W
