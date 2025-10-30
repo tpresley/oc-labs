@@ -83,3 +83,34 @@ def estimate_stiffness(cfg) -> StiffnessResult:
     return StiffnessResult(I={"U1": I1, "SU2": I2, "SU3": I3},
                            err={"U1": e1, "SU2": e2, "SU3": e3},
                            samples_used=len(pts))
+
+def _scale_centers_widths(centers, lam: float):
+    """Tighten/loosen features by scaling the shared width s -> s/lam; xyz, A fixed."""
+    out = []
+    for x, y, z, A, s in centers:
+        s_new = float(s) / float(lam)
+        out.append([float(x), float(y), float(z), float(A), s_new])
+    return out
+
+def scaling_exponent_I3_widths(gcfg, lams=(0.8,0.85,0.9,0.95,1.05,1.1,1.15,1.2), seeds=(0,1,2)) -> float:
+    """
+    t ≡ d ln I3 / d ln (1/s) at λ=1, via multi-point, multi-seed fit.
+    Implemented by replacing center widths s -> s/λ (tighten for λ>1), keeping xyz and domain fixed.
+    """
+    import numpy as np
+    from .stiffness import estimate_stiffness
+
+    xs, ys = [], []
+    for lam in lams:
+        vals = []
+        for bump in seeds:
+            g = gcfg.__class__(**{**gcfg.__dict__})
+            g.centers = _scale_centers_widths(gcfg.centers, float(lam))
+            g.rng_seed = None if gcfg.rng_seed is None else int(gcfg.rng_seed) + int(bump)
+            vals.append(estimate_stiffness(g).I["SU3"])
+        xs.append(np.log(float(lam)))               # ln(λ) = ln(1/s) change
+        ys.append(np.log(float(np.mean(vals))))     # ln I3
+    xs = np.asarray(xs, float); ys = np.asarray(ys, float)
+    A = np.vstack([xs, np.ones_like(xs)]).T
+    slope, _ = np.linalg.lstsq(A, ys, rcond=None)[0]  # t = d ln I3 / d ln(1/s)
+    return float(slope)

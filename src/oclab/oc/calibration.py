@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Dict
 import math
 from ..config import _to_float
+import numpy as np
 
 @dataclass
 class CalibrationResult:
@@ -14,6 +15,7 @@ class CalibrationResult:
 def calibrate_x_and_couplings(gcfg, ew, ocp) -> CalibrationResult:
     # Lazily import to avoid circulars
     from .stiffness import estimate_stiffness
+    from .stiffness import scaling_exponent_I3
     stiff = estimate_stiffness(gcfg)
 
     # GUT-normalized α1 from α_em, θ_W
@@ -40,7 +42,24 @@ def calibrate_x_and_couplings(gcfg, ew, ocp) -> CalibrationResult:
     x = math.sqrt(max(x1,1e-30)*max(x2,1e-30))
 
     # Predict α3 at μ0
-    K3 = Ka("SU3")
+    # --- SU(3) normalization ---
+    if getattr(ocp, "Ka_mode", "fixed") == "slope":
+        from .stiffness import scaling_exponent_I3_widths
+
+        beta0 = 11.0 - 2.0*5.0/3.0  # nf=5 for 150→MZ
+        t = scaling_exponent_I3_widths(gcfg)  # t = d ln I3 / d ln(1/s)
+        print(f"[slope-widths] t(dln I3/dln 1/s)={t:.6g}, I3={stiff.I['SU3']:.6g}, x={x:.6g}")
+
+        if not np.isfinite(t) or abs(t) < 1e-3:
+            raise ValueError(f"Width-slope too small/unstable (t={t}); increase geometry.n_samples or widen λ grid.")
+        K3 = (beta0 / (2.0*np.pi)) / (abs(t) * stiff.I["SU3"] * x)  # positive by construction
+        inv_alpha3 = K3 * stiff.I["SU3"] * x
+        alpha3 = 1.0 / inv_alpha3
+
+    else:
+        K3 = Ka("SU3")
+
+
     inv_alpha3 = K3 * stiff.I["SU3"] * x
     alpha3 = 1.0 / inv_alpha3 if inv_alpha3>0 else float("nan")
 

@@ -2,17 +2,20 @@ Metadata-Version: 2.4
 Name: oclab
 Version: 0.1.0
 Summary: OC lab: geometry→couplings, RG, and FRG mass-gap
-Author: Troy Presley
+Author: Your Name
 Requires-Python: >=3.10
 Description-Content-Type: text/markdown
+License-File: LICENSE
 Requires-Dist: numpy>=1.26
 Requires-Dist: scipy>=1.11
 Requires-Dist: matplotlib>=3.7
 Requires-Dist: pydantic>=2.0
+Requires-Dist: torch>=2.9
+Dynamic: license-file
 
 # oclab
 
-A unified, notebook-friendly codebase that reproduces Observer-Centrism fixed-line relations by:
+A unified, notebook-friendly codebase that reproduces the two prior pipelines:
 
 1) Geometry → stiffness integrals → calibrate `x` with EW lock → predict gauge couplings.
 2) RG running from `mu0` to target scale.
@@ -21,7 +24,7 @@ A unified, notebook-friendly codebase that reproduces Observer-Centrism fixed-li
 ## Quickstart (editable install)
 
 ```bash
-pip install -e .
+pip install -e /mnt/data/oclab
 ```
 
 Then open the starter notebook in `notebooks/01_end_to_end.ipynb`.

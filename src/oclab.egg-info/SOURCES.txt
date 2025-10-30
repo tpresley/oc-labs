@@ -1,3 +1,4 @@
+LICENSE
 README.md
 pyproject.toml
 src/oclab/__init__.py
@@ -22,6 +23,7 @@ src/oclab/math/linalg.py
 src/oclab/math/sampling.py
 src/oclab/oc/__init__.py
 src/oclab/oc/calibration.py
+src/oclab/oc/centers.py
 src/oclab/oc/geometry.py
 src/oclab/oc/stiffness.py
 src/oclab/oc/units.py

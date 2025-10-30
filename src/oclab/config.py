@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Dict, List, Optional
+from typing import Literal, Dict, List, Optional, Any
 
 # --- numeric coercion helpers ---
 def _to_float(x) -> float:
@@ -25,6 +25,7 @@ class GeometryConfig:
     metric_model: Literal["hessian_logV","grad_outer"] = "grad_outer"
     weight_form: Literal["sqrt_detG"] = "sqrt_detG"
     jitter: float = 1e-9
+    generator: Optional[Dict[str, Any]] = None
     def __post_init__(self):
         self.alpha_metric = _to_float(self.alpha_metric)
         self.beta_floor   = _to_float(self.beta_floor)
@@ -51,6 +52,7 @@ class OCParams:
     weights: Dict[str,float]   # W_a
     n_color_discrete: int      # e.g., 2
     lock_modes: Literal["EW","none"] = "EW"
+    Ka_mode: Literal["fixed","slope"] = "fixed" 
     # --- NEW: Ka normalization knobs (for 1/α_a = Ka(a) * x * I_a) ---
     Ka_prefactor: float = 1.0              # global scale multiplier
     Ka_power_kappa: float = 2.0            # use |kappa_a|^power (default square)
@@ -100,3 +102,26 @@ class FRGScan:
         self.growth_c     = _to_float(self.growth_c)
         self.eta_freeze   = _to_float(self.eta_freeze)
         self.alpha_cap    = _to_float(self.alpha_cap)
+
+def realize_geometry_centers(gcfg: GeometryConfig, raw_geometry: Dict[str, Any] | None = None) -> GeometryConfig:
+    """If a generator is present, synthesize centers procedurally."""
+    gen = (raw_geometry or {}).get("generator") or getattr(gcfg, "generator", None) or {}
+    if not gen: return gcfg
+    from .oc.centers import gen_icosa, gen_dodeca, gen_octa, gen_tetra, gen_random_shell
+    kind = (gen.get("type") or "").lower()
+    g2 = GeometryConfig(**{**gcfg.__dict__})
+    if kind == "icosa":
+        C, _, _ = gen_icosa(gcfg.domain)
+    elif kind == "dodeca":
+        C, _, _ = gen_dodeca(gcfg.domain)
+    elif kind == "octa":
+        C, _, _ = gen_octa(gcfg.domain)
+    elif kind == "tetra":
+        C, _, _ = gen_tetra(gcfg.domain)
+    elif kind == "random":
+        C, _, _ = gen_random_shell(gcfg.domain, N=int(gen.get("N", 12)), seed=int(gen.get("seed", 0)))
+    else:
+        raise ValueError(f"Unknown geometry.generator.type: {kind}")
+    g2.centers = C
+    return g2
+

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from oclab.config import GeometryConfig, EWAnchor, OCParams, RGRun, FRGScan
+from oclab.config import realize_geometry_centers
 from oclab.pipeline import geometry_to_couplings, oc_gap_from_frg
 from oclab.frg.flows import solve_alpha_target_for_kstar, expected_kstar_toy
 import yaml, argparse, json
@@ -15,7 +16,11 @@ p.add_argument('--scan-frg', type=str, default=None,
 args = p.parse_args()
 
 cfg = yaml.safe_load(open(args.config))
-g   = GeometryConfig(**cfg['geometry'])
+geom_map = cfg['geometry']
+g   = GeometryConfig(**geom_map)
+g   = realize_geometry_centers(g, raw_geometry=geom_map)
+print(f"[GEOM] centers={len(getattr(g, 'centers', []))}  gen={geom_map.get('generator', {}).get('type', 'explicit')}")
+
 ew  = EWAnchor(**cfg['ew_anchor'])
 oc  = OCParams(**cfg['oc_params'])
 rg  = RGRun(**cfg['rg'])

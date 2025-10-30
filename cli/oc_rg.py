@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from oclab.config import GeometryConfig, EWAnchor, OCParams, RGRun
+from oclab.config import GeometryConfig, EWAnchor, OCParams, RGRun, realize_geometry_centers
 from oclab.pipeline import geometry_to_couplings
 import yaml, argparse
 from oclab.viz.plotting import plot_alpha_running
@@ -12,6 +12,7 @@ args = p.parse_args()
 
 cfg = yaml.safe_load(open(args.config))
 g   = GeometryConfig(**cfg['geometry'])
+g = realize_geometry_centers(g)
 ew  = EWAnchor(**cfg['ew_anchor'])
 oc  = OCParams(**cfg['oc_params'])
 rg  = RGRun(**cfg['rg'])
