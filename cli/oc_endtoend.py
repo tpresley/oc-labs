@@ -88,6 +88,22 @@ if frg.alpha_target <= frg.alpha_cap * 1.05:
 exp_k = expected_kstar_toy(calib.alphas_mu0["SU3"], frg.growth_c, frg.kmax, frg.eta_freeze, model=frg.model)
 ln_err = abs(np.log(exp_k / frg_res.k_star)) if frg_res.k_star else float("inf")
 
+
+from oclab.frg.flows import expected_kstar_toy, alpha_for_eta
+alpha0 = calib.alphas_mu0["SU3"]
+a_eta  = alpha_for_eta(frg.eta_freeze, model=frg.model)     # projected: 0.9*α/(1+0.5α)
+dln_req = (1.0/alpha0 - 1.0/a_eta) / frg.growth_c
+dln_av  = np.log(frg.kmax/frg.kmin)
+
+print(f"[FRG diag] alpha0={alpha0:.6g}  alpha_eta={a_eta:.6g} "
+      f"Δln_req={dln_req:.4f}  Δln_avail={dln_av:.4f}  "
+      f"alpha_cap={frg.alpha_cap}  eta_freeze={frg.eta_freeze}")
+
+k_exp = expected_kstar_toy(alpha0, frg.growth_c, frg.kmax, frg.eta_freeze, model=frg.model)
+print(f"[FRG diag] k*_expected={k_exp:.6g}")
+
+
+
 # Assertions (leave them on by default; comment out if you truly need to bypass)
 assert frg_res.reason == "eta_freeze", f"FRG stopped by '{frg_res.reason}', expected 'eta_freeze'."
 assert frg_res.k_star and ln_err < 0.15, f"Numeric k*={frg_res.k_star:g} vs analytic ~{exp_k:g} (ln error={ln_err:.3f})"

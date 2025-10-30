@@ -53,7 +53,8 @@ class OCParams:
     weights: Dict[str,float]   # W_a
     n_color_discrete: int      # e.g., 2
     lock_modes: Literal["EW","none"] = "EW"
-    Ka_mode: Literal["fixed","slope"] = "fixed" 
+    Ka_mode: Literal["fixed","slope"] = "fixed"
+    Ka_slope_K0: float = 1.0
     # --- NEW: Ka normalization knobs (for 1/α_a = Ka(a) * x * I_a) ---
     Ka_prefactor: float = 1.0              # global scale multiplier
     Ka_power_kappa: float = 2.0            # use |kappa_a|^power (default square)
@@ -73,6 +74,7 @@ class OCParams:
         self.m_tau_prefactor    = _to_float(self.m_tau_prefactor)
         self.m_tau_kappa_power  = _to_float(self.m_tau_kappa_power)
         self.m_tau_x_exponent   = _to_float(self.m_tau_x_exponent)
+        self.Ka_slope_K0        = _to_float(self.Ka_slope_K0)
 
 @dataclass
 class RGRun:

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Dict
 import math
 from ..config import _to_float
+from .slope import slope_ln_xI3_vs_ln_inv_s
 import numpy as np
 
 @dataclass
@@ -15,7 +16,7 @@ class CalibrationResult:
 def calibrate_x_and_couplings(gcfg, ew, ocp) -> CalibrationResult:
     # Lazily import to avoid circulars
     from .stiffness import estimate_stiffness
-    stiff = estimate_stiffness(gcfg)
+    stiff = estimate_stiffness(gcfg, mode="raw")
 
     # GUT-normalized α1 from α_em, θ_W
     alpha_em = _to_float(ew.alpha_em_mu0)
@@ -43,16 +44,26 @@ def calibrate_x_and_couplings(gcfg, ew, ocp) -> CalibrationResult:
     # Predict α3 at μ0
     # --- SU(3) normalization ---
     if getattr(ocp, "Ka_mode", "fixed") == "slope":
-        from .stiffness import scaling_exponent_I3_widths
+        beta0 = 11.0 - 2.0*5.0/3.0   # nf=5 for 150→MZ window
+        u = slope_ln_xI3_vs_ln_inv_s(gcfg, ew, ocp)   # u = d ln(xI3)/d ln(1/s)
+        if not np.isfinite(u) or abs(u) < 1e-3:
+            raise ValueError(f"Width-slope for ln(x I3) too small/unstable (u={u}); increase n_samples or widen λ grid.")
+        # use *baseline* x and I3 for the normalization factor
+        stiff0 = estimate_stiffness(gcfg, mode="raw")
+        # recompute baseline x (same as above)
+        alpha_em = ew.alpha_em_mu0; s2=ew.sin2_thetaW_mu0; c2=1.0 - s2
+        alpha1 = (5.0/3.0) * alpha_em / c2; alpha2 = alpha_em / s2
+        def Ka(group: str):
+            kap = abs(ocp.kappa.get(group, 1)); W = ocp.weights.get(group, 1.0); n = ocp.n_color_discrete or 1
+            base = (kap ** ocp.Ka_power_kappa) * W
+            if ocp.Ka_divide_by_n: base /= n
+            return ocp.Ka_prefactor * base
+        x1 = (1.0/alpha1) / (Ka("U1") * stiff0.I["U1"])
+        x2 = (1.0/alpha2) / (Ka("SU2") * stiff0.I["SU2"])
+        x  = float(np.sqrt(max(x1,1e-30)*max(x2,1e-30)))
 
-        beta0 = 11.0 - 2.0*5.0/3.0  # nf=5 for 150→MZ
-        t = scaling_exponent_I3_widths(gcfg)  # t = d ln I3 / d ln(1/s)
-        print(f"[slope-widths] t(dln I3/dln 1/s)={t:.6g}, I3={stiff.I['SU3']:.6g}, x={x:.6g}")
-
-        if not np.isfinite(t) or abs(t) < 1e-3:
-            raise ValueError(f"Width-slope too small/unstable (t={t}); increase geometry.n_samples or widen λ grid.")
-        K3 = (beta0 / (2.0*np.pi)) / (abs(t) * stiff.I["SU3"] * x)  # positive by construction
-        inv_alpha3 = K3 * stiff.I["SU3"] * x
+        K3 = ocp.Ka_slope_K0 * (beta0 / (2.0*np.pi)) / (abs(u) * x * stiff0.I["SU3"])   # PARAMETER-FREE
+        inv_alpha3 = K3 * stiff0.I["SU3"] * x
         alpha3 = 1.0 / inv_alpha3
 
     else:

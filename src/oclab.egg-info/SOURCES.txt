@@ -27,6 +27,7 @@ src/oclab/oc/__init__.py
 src/oclab/oc/calibration.py
 src/oclab/oc/centers.py
 src/oclab/oc/geometry.py
+src/oclab/oc/slope.py
 src/oclab/oc/stiffness.py
 src/oclab/oc/units.py
 src/oclab/sm/__init__.py
